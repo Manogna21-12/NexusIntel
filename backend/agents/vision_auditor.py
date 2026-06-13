@@ -30,7 +30,7 @@ class VisionAuditor:
         time.sleep(1)
 
         if self.is_live:
-            log("Gemini API Key detected. Initializing Gemini 1.5 Pro multimodal vision processing...")
+            log("Gemini API Key detected. Initializing Gemini 1.5 Flash multimodal vision processing...")
             try:
                 import google.generativeai as genai
                 genai.configure(api_key=self.api_key)
@@ -40,14 +40,14 @@ class VisionAuditor:
                 # and send them to Gemini. For the hackathon context, if they provide a key,
                 # we show how the model prompt is constructed and perform a Gemini text/image prompt.
                 
-                model = genai.GenerativeModel("gemini-1.5-pro")
+                model = genai.GenerativeModel("gemini-1.5-flash")
                 prompt = (
                     f"Analyze this video URL or metadata representing a competitor demo of {competitor_name}. "
                     "Extract any unannounced UI elements, new sidebar routes, pricing updates shown in dashboard, "
                     "or feature changes. Respond in JSON with keys 'visual_shifts', 'new_features', and 'confidence_score'."
                 )
                 
-                log("Sending multimodal request to Gemini 1.5 Pro...")
+                log("Sending multimodal request to Gemini 1.5 Flash...")
                 # Simulate frame check for video url or run generic check
                 response = model.generate_content(prompt)
                 log("Gemini frame analysis complete.")

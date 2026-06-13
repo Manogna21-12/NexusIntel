@@ -1,161 +1,169 @@
 import React from 'react';
-import { Eye, FileCode, GitCompare, RefreshCw, AlertTriangle, CalendarRange, Workflow } from 'lucide-react';
+import { Eye, FileCode, GitCompare, AlertTriangle, Calendar, Workflow } from 'lucide-react';
 
-export default function AgentVisualizer({ currentAgent, currentStep }) {
-  // Determine states of nodes based on currentAgent and currentStep
-  const getNodeState = (nodeName) => {
-    if (!currentAgent) return 'idle';
-    
-    // Mapping of node sequence
-    const sequence = [
-      'VisionAuditor',
-      'CodeArcheologist',
-      'Reconciliation',
-      'ConflictResolver',
-      'TimelineGenerator'
-    ];
+export default function AgentVisualizer({ currentAgent, progress, progressText }) {
+  const sequence = [
+    {
+      id: 'VisionAuditor',
+      name: '👁️ Screen Scanner (Vision AI)',
+      description: 'Extracts visual features from product demos and screenshots.',
+      icon: Eye,
+      activeColor: 'var(--color-purple)'
+    },
+    {
+      id: 'CodeArcheologist',
+      name: '💻 Code Inspector (Code AI)',
+      description: 'Scans repositories and script files to match backend telemetry.',
+      icon: FileCode,
+      activeColor: 'var(--color-cyan)'
+    },
+    {
+      id: 'Reconciliation',
+      name: '🔄 Feature Comparer (Data Merger)',
+      description: 'Matches UI layouts against codebase diffs to find disparities.',
+      icon: GitCompare,
+      activeColor: 'var(--color-indigo)'
+    },
+    {
+      id: 'ConflictResolver',
+      name: '⚠️ Anomalies Detector (Resolver)',
+      description: 'Validates if features are real or just marketing mockups.',
+      icon: AlertTriangle,
+      activeColor: 'var(--color-amber)'
+    },
+    {
+      id: 'TimelineGenerator',
+      name: '📅 Roadmap Compiler (Launch Estimator)',
+      description: 'Synthesizes final competitor launch roadmaps and confidence scores.',
+      icon: Calendar,
+      activeColor: 'var(--color-emerald)'
+    }
+  ];
 
-    const currentIdx = sequence.indexOf(currentAgent);
-    const nodeIdx = sequence.indexOf(nodeName);
+  const getNodeState = (nodeId) => {
+    if (!currentAgent) {
+      if (progress === 100) return 'completed';
+      return 'idle';
+    }
 
-    if (currentAgent === nodeName) return 'active';
+    const order = sequence.map(s => s.id);
+    const currentIdx = order.indexOf(currentAgent);
+    const nodeIdx = order.indexOf(nodeId);
+
+    if (currentAgent === nodeId) return 'active';
     if (nodeIdx !== -1 && currentIdx > nodeIdx) return 'completed';
     return 'idle';
   };
 
-  const getPathClass = (fromNode, toNode) => {
-    const fromState = getNodeState(fromNode);
-    const toState = getNodeState(toNode);
-
-    if (fromState === 'completed' && toState === 'active') return 'conn-path active';
-    if (fromState === 'completed' && toState === 'completed') return 'conn-path completed';
-    return 'conn-path';
+  const getStepStatusLabel = (state) => {
+    if (state === 'active') return 'Analyzing...';
+    if (state === 'completed') return 'Ready';
+    return 'Pending';
   };
 
   return (
     <div className="panel" style={{ height: '100%' }}>
-      <div className="panel-header">
-        <div className="panel-title">
-          <Workflow size={18} className="icon-glow" style={{ color: 'var(--color-purple)' }} />
-          LangGraph Workflow Engine
-        </div>
-        <span className="panel-subtitle">Agent Swarm Logic</span>
-      </div>
-      <div className="panel-content" style={{ padding: 0 }}>
-        <div className="visualizer-container">
-          
-          {/* Dynamic Connector SVG Paths */}
-          <svg className="connections-svg">
-            <defs>
-              <linearGradient id="purple-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="var(--color-purple)" />
-                <stop offset="100%" stopColor="var(--color-cyan)" />
-              </linearGradient>
-            </defs>
-            
-            {/* Vision Auditor -> Reconciliation */}
-            <path 
-              d="M 100, 110 C 100, 160 180, 160 180, 210" 
-              className={getPathClass('VisionAuditor', 'Reconciliation')} 
-            />
-            {/* Code Archeologist -> Reconciliation */}
-            <path 
-              d="M 270, 110 C 270, 160 180, 160 180, 210" 
-              className={getPathClass('CodeArcheologist', 'Reconciliation')} 
-            />
-            {/* Reconciliation -> ConflictResolver */}
-            <path 
-              d="M 180, 260 L 180, 310" 
-              className={getPathClass('Reconciliation', 'ConflictResolver')} 
-            />
-            {/* ConflictResolver -> TimelineGenerator */}
-            <path 
-              d="M 180, 360 L 180, 410" 
-              className={getPathClass('ConflictResolver', 'TimelineGenerator')} 
-            />
-          </svg>
-
-          {/* Nodes Layer */}
-          <div className="nodes-layer">
-            
-            {/* Row 1: Multimodal Collectors */}
-            <div className="node-row" style={{ marginTop: '20px' }}>
-              
-              {/* Agent 1 Node */}
-              <div className={`agent-node ${getNodeState('VisionAuditor')}`}>
-                <div className="node-avatar">
-                  <Eye size={20} className={getNodeState('VisionAuditor') === 'active' ? 'spin-anim' : ''} />
-                </div>
-                <div className="node-name">Vision Auditor</div>
-                <div className="node-status">
-                  {getNodeState('VisionAuditor') === 'active' && 'Scanning Video...'}
-                  {getNodeState('VisionAuditor') === 'completed' && 'Frames Parsed'}
-                  {getNodeState('VisionAuditor') === 'idle' && 'Waiting...'}
-                </div>
-              </div>
-
-              {/* Agent 2 Node */}
-              <div className={`agent-node ${getNodeState('CodeArcheologist')}`}>
-                <div className="node-avatar">
-                  <FileCode size={20} />
-                </div>
-                <div className="node-name">Code Archeologist</div>
-                <div className="node-status">
-                  {getNodeState('CodeArcheologist') === 'active' && 'Diffing JS/Commits...'}
-                  {getNodeState('CodeArcheologist') === 'completed' && 'AST Diff Complete'}
-                  {getNodeState('CodeArcheologist') === 'idle' && 'Waiting...'}
-                </div>
-              </div>
-
-            </div>
-
-            {/* Row 2: Synthesis Engine Node 1 - Reconciliation */}
-            <div className="node-row">
-              <div className={`agent-node ${getNodeState('Reconciliation')}`} style={{ width: '220px' }}>
-                <div className="node-avatar">
-                  <GitCompare size={20} />
-                </div>
-                <div className="node-name">1. Reconciliation Node</div>
-                <div className="node-status">
-                  {getNodeState('Reconciliation') === 'active' && 'Merging features...'}
-                  {getNodeState('Reconciliation') === 'completed' && 'Merged Candidates'}
-                  {getNodeState('Reconciliation') === 'idle' && 'Idle'}
-                </div>
-              </div>
-            </div>
-
-            {/* Row 3: Synthesis Engine Node 2 - Conflict Resolver */}
-            <div className="node-row">
-              <div className={`agent-node ${getNodeState('ConflictResolver')}`} style={{ width: '220px' }}>
-                <div className="node-avatar">
-                  <AlertTriangle size={20} />
-                </div>
-                <div className="node-name">2. Conflict Resolver</div>
-                <div className="node-status">
-                  {getNodeState('ConflictResolver') === 'active' && 'Auditing claims...'}
-                  {getNodeState('ConflictResolver') === 'completed' && 'Discrepancies Solved'}
-                  {getNodeState('ConflictResolver') === 'idle' && 'Idle'}
-                </div>
-              </div>
-            </div>
-
-            {/* Row 4: Synthesis Engine Node 3 - Timeline Generator */}
-            <div className="node-row" style={{ marginBottom: '20px' }}>
-              <div className={`agent-node ${getNodeState('TimelineGenerator')}`} style={{ width: '220px' }}>
-                <div className="node-avatar">
-                  <CalendarRange size={20} />
-                </div>
-                <div className="node-name">3. Timeline Generator</div>
-                <div className="node-status">
-                  {getNodeState('TimelineGenerator') === 'active' && 'Mapping roadmap...'}
-                  {getNodeState('TimelineGenerator') === 'completed' && 'Roadmap Rendered'}
-                  {getNodeState('TimelineGenerator') === 'idle' && 'Idle'}
-                </div>
-              </div>
-            </div>
-
+      
+      {/* Real-time Swarm Progress Header */}
+      <div className="panel-header" style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'stretch', padding: '12px 20px 8px 20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="panel-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Workflow size={14} style={{ color: 'var(--color-purple)' }} />
+            Swarm Orchestration Pipeline
           </div>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: progress === 100 ? 'var(--color-emerald)' : 'var(--text-secondary)' }}>
+            {progress}%
+          </span>
+        </div>
+        
+        {/* Sleek horizontal progress bar */}
+        <div style={{ width: '100%', height: '3px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '2px', overflow: 'hidden' }}>
+          <div 
+            style={{ 
+              width: `${progress}%`, 
+              height: '100%', 
+              background: progress === 100 ? 'var(--color-emerald)' : 'linear-gradient(to right, var(--color-purple), var(--color-cyan))', 
+              borderRadius: '2px',
+              transition: 'width 0.3s ease-out'
+            }} 
+          />
+        </div>
+        
+        <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+          <div style={{ width: 4, height: 4, borderRadius: '50%', background: progress > 0 && progress < 100 ? 'var(--color-purple)' : 'var(--text-muted)', animation: progress > 0 && progress < 100 ? 'pulse 1.5s infinite' : 'none' }}></div>
+          {progressText}
+        </div>
+      </div>
 
+      <div className="panel-content" style={{ padding: '8px 0' }}>
+        <div className="pipeline-container" style={{ padding: '4px 16px' }}>
+          {sequence.map((step, idx) => {
+            const state = getNodeState(step.id);
+            const Icon = step.icon;
+
+            // Determine active glowing connector state
+            let connectorState = 'idle';
+            if (progress === 100) {
+              connectorState = 'completed';
+            } else if (currentAgent) {
+              const order = sequence.map(s => s.id);
+              const currentIdx = order.indexOf(currentAgent);
+              if (idx < currentIdx) {
+                connectorState = 'completed';
+              } else if (idx === currentIdx) {
+                connectorState = 'active';
+              }
+            }
+
+            return (
+              <React.Fragment key={step.id}>
+                {idx > 0 && (
+                  <div style={{
+                    marginLeft: '28px',
+                    width: '2px',
+                    height: '10px',
+                    background: connectorState === 'completed' ? 'var(--color-emerald)' : 
+                                connectorState === 'active' ? 'linear-gradient(to bottom, var(--color-purple), var(--color-cyan))' : 'rgba(255,255,255,0.06)',
+                    opacity: connectorState === 'idle' ? 0.35 : 1,
+                    transition: 'var(--transition-smooth)'
+                  }} />
+                )}
+                <div 
+                  className={`pipeline-step ${state}`}
+                  style={{
+                    borderColor: state === 'active' ? step.activeColor : undefined,
+                    background: state === 'active' ? `${step.activeColor}05` : undefined,
+                    boxShadow: state === 'active' ? `0 0 12px ${step.activeColor}15` : undefined,
+                    padding: '8px 12px'
+                  }}
+                >
+                  <div 
+                    className="step-indicator"
+                    style={{
+                      borderColor: state === 'active' ? step.activeColor : undefined,
+                      color: state === 'active' ? step.activeColor : undefined,
+                      background: state === 'completed' ? 'rgba(52, 211, 153, 0.1)' : undefined
+                    }}
+                  >
+                    <Icon size={12} />
+                  </div>
+                  <div className="step-info">
+                    <div className="step-title" style={{ fontSize: '12px', fontWeight: 600 }}>{step.name}</div>
+                    <div className="step-desc" style={{ fontSize: '10px', marginTop: '1px' }}>{step.description}</div>
+                  </div>
+                  <div 
+                    className={`step-status ${state}`}
+                    style={{
+                      fontSize: '9px',
+                      color: state === 'active' ? step.activeColor : undefined
+                    }}
+                  >
+                    {getStepStatusLabel(state)}
+                  </div>
+                </div>
+              </React.Fragment>
+            );
+          })}
         </div>
       </div>
     </div>

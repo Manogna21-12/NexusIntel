@@ -47,7 +47,7 @@ class CodeArcheologist:
                     "+ \"@google/generative-ai\": \"^0.11.0\""
                 )
                 
-                model = genai.GenerativeModel("gemini-1.5-pro")
+                model = genai.GenerativeModel("gemini-1.5-flash")
                 prompt = (
                     f"Analyze the following code diff from {competitor_name}'s repository. "
                     "Identify new libraries, new API endpoints, feature flags, and structural shifts. "
@@ -55,7 +55,7 @@ class CodeArcheologist:
                     "Respond in JSON with keys 'structural_shifts', 'added_dependencies', 'new_endpoints', and 'confidence_score'."
                 )
                 
-                log("Sending code diff to Gemini 1.5 Pro...")
+                log("Sending code diff to Gemini 1.5 Flash...")
                 response = model.generate_content(prompt)
                 log("Gemini code analysis complete.")
                 
